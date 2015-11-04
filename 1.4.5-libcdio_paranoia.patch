@@ -1,0 +1,63 @@
+--- origsrc/gst-plugins-base-1.4.5/configure.ac	2014-12-18 04:33:21.000000000 -0600
++++ src/gst-plugins-base-1.4.5/configure.ac	2015-10-30 03:55:16.516444900 -0500
+@@ -601,7 +601,7 @@ dnl *** CDParanoia ***
+ dnl Note: upstream has a pkg-config file only in post-10.2 SVN so far
+ translit(dnm, m, l) AM_CONDITIONAL(USE_CDPARANOIA, true)
+ AG_GST_CHECK_FEATURE(CDPARANOIA, [CDParanoia], cdparanoia, [
+-  PKG_CHECK_MODULES(CDPARANOIA, cdparanoia-3 >= 10.2, [
++  PKG_CHECK_MODULES(CDPARANOIA, libcdio_paranoia >= 10.2, [
+     HAVE_CDPARANOIA="yes"
+   ], [
+     AG_GST_CHECK_LIBHEADER(CDPARANOIA, cdda_interface,
+--- origsrc/gst-plugins-base-1.4.5/ext/cdparanoia/gstcdparanoiasrc.c	2014-10-19 06:41:04.000000000 -0500
++++ src/gst-plugins-base-1.4.5/ext/cdparanoia/gstcdparanoiasrc.c	2015-10-30 09:50:15.248040300 -0500
+@@ -206,9 +206,12 @@ gst_cd_paranoia_src_open (GstAudioCdSrc
+       device, GST_STR_NULL (src->generic_device));
+ 
+   /* find the device */
++#ifdef __linux__
+   if (src->generic_device != NULL) {
+     src->d = cdda_identify_scsi (src->generic_device, device, FALSE, NULL);
+-  } else {
++  } else
++#endif
++  {
+     if (device != NULL) {
+       src->d = cdda_identify (device, FALSE, NULL);
+     } else {
+@@ -234,7 +237,7 @@ gst_cd_paranoia_src_open (GstAudioCdSrc
+     GstAudioCdSrcTrack track = { 0, };
+ 
+     track.num = i;
+-    track.is_audio = IS_AUDIO (src->d, i - 1);
++    track.is_audio = cdda_track_audiop (src->d, i);
+     track.start = cdda_track_firstsector (src->d, i);
+     track.end = cdda_track_lastsector (src->d, i);
+     track.tags = NULL;
+@@ -312,13 +315,13 @@ gst_cd_paranoia_src_close (GstAudioCdSrc
+ }
+ 
+ static void
+-gst_cd_paranoia_dummy_callback (long inpos, int function)
++gst_cd_paranoia_dummy_callback (long inpos, paranoia_cb_mode_t function)
+ {
+   /* Used by instanced where no one is interested what's happening here */
+ }
+ 
+ static void
+-gst_cd_paranoia_paranoia_callback (long inpos, int function)
++gst_cd_paranoia_paranoia_callback (long inpos, paranoia_cb_mode_t function)
+ {
+   GstCdParanoiaSrc *src = cur_cb_source;
+   gint sector = (gint) (inpos / CD_FRAMEWORDS);
+--- origsrc/gst-plugins-base-1.4.5/ext/cdparanoia/gstcdparanoiasrc.h	2014-10-19 06:41:04.000000000 -0500
++++ src/gst-plugins-base-1.4.5/ext/cdparanoia/gstcdparanoiasrc.h	2015-10-30 09:50:21.224799300 -0500
+@@ -60,7 +60,7 @@ struct _GstCdParanoiaSrc {
+   GstAudioCdSrc   audiocdsrc;
+ 
+   /*< private >*/
+-  cdrom_drive     *d;
++  struct cdrom_drive *d;
+   cdrom_paranoia  *p;
+ 
+   gint             next_sector; /* -1 or next sector we expect to
