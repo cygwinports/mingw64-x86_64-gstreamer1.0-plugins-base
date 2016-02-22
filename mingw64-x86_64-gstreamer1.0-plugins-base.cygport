@@ -4,7 +4,7 @@ GST_PLUGINS_DISABLE="alsa ivorbis libvisual x xvideo"
 inherit cross gst-plugins
 
 NAME="mingw64-x86_64-gstreamer1.0-plugins-base"
-VERSION=1.6.1
+VERSION=1.6.3
 RELEASE=1
 CATEGORY="Devel"
 SUMMARY="GStreamer 1.0 Base Plug-ins for Win64 toolchain"
