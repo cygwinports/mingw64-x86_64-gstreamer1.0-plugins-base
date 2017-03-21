@@ -1,10 +1,10 @@
 CROSS_HOST="x86_64-w64-mingw32"
-GST_PLUGINS_ENABLE="cdparanoia ogg pango theora vorbis"
+GST_PLUGINS_ENABLE="cdparanoia ogg opus pango theora vorbis"
 GST_PLUGINS_DISABLE="alsa ivorbis libvisual x xvideo"
 inherit cross gst-plugins
 
 NAME="mingw64-x86_64-gstreamer1.0-plugins-base"
-VERSION=1.6.4
+VERSION=1.10.4
 RELEASE=1
 CATEGORY="Devel"
 SUMMARY="GStreamer 1.0 Base Plug-ins for Win64 toolchain"
